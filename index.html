@@ -27,11 +27,6 @@
       display: none;
     }
 
-    /* ── Initial Section ── */
-    #initial-section {
-      text-align: center;
-    }
-
     .surprise-button {
       font-size: 1.6rem;
       padding: 20px 48px;
@@ -70,8 +65,8 @@
     }
 
     .heart-svg {
-      width: 320px;
-      height: 290px;
+      width: 70vmin;
+      height: 63vmin;
     }
 
     .heart-path {
@@ -264,19 +259,12 @@
 
   <!-- Audio -->
   <audio id="background-music" loop>
-    <source src="valentine_music.mp3" type="audio/mpeg">
+    <source src="media/music/valentine_music.mp3" type="audio/mpeg">
   </audio>
 
-  <!-- State 1: Initial -->
-  <section id="initial-section">
-    <button class="surprise-button" id="surprise-button">
-      Click here for surprise !!!
-    </button>
-  </section>
-
-  <!-- State 2: Surprise sequence (heart frame + question/response) -->
-  <section id="surprise-section" class="hidden">
-    <svg class="heart-svg" viewBox="0 0 200 180" xmlns="http://www.w3.org/2000/svg">
+  <!-- Main section: heart + question/response -->
+  <section id="surprise-section">
+    <svg class="heart-svg hidden" id="heart-svg" viewBox="0 0 200 180" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <clipPath id="heart-clip">
           <path d="M100,170 C60,130 0,100 0,55 A55,55,0,0,1,100,30 A55,55,0,0,1,200,55 C200,100 140,130 100,170 Z" />
@@ -296,13 +284,16 @@
         opacity="0"
       />
     </svg>
-    <p id="status-text" aria-live="polite">
+    <p id="status-text" class="hidden" aria-live="polite">
       Will you be my Valentine?
     </p>
-    <div class="answer-buttons" id="answer-buttons">
+    <div class="answer-buttons hidden" id="answer-buttons">
       <button class="answer-button yes-button" id="yes-button">Yes!</button>
       <button class="answer-button no-button" id="no-button">No</button>
     </div>
+    <button class="surprise-button" id="surprise-button">
+      Click here for surprise !!!
+    </button>
   </section>
 
   <!-- Volume control (shown when music plays) -->
@@ -313,9 +304,9 @@
 
   <script>
     /* ── Element References ── */
-    var initialSection = document.getElementById("initial-section");
     var surpriseSection = document.getElementById("surprise-section");
     var surpriseButton = document.getElementById("surprise-button");
+    var heartSvg = document.getElementById("heart-svg");
     var heartPath = document.getElementById("heart-path");
     var heartImage = document.getElementById("heart-image");
     var statusText = document.getElementById("status-text");
@@ -329,6 +320,59 @@
     /* ── App State ── */
     var appState = "QUESTION";
     var textChangeId = 0;
+    var SUPPORTED_FORMATS = ["png", "jpg", "jpeg", "gif", "webp"];
+    var ourPictureImages = [];
+    var pleasePictureImages = [];
+    var ourPictureIndex = 0;
+    var pleasePictureIndex = 0;
+
+    /* ── Try loading an image with supported formats ── */
+    function tryImageFormats(folder, number) {
+      return new Promise(function (resolve) {
+        var i = 0;
+        function tryNext() {
+          if (i >= SUPPORTED_FORMATS.length) { resolve(null); return; }
+          var path = "media/images/" + folder + "/" + number + "." + SUPPORTED_FORMATS[i];
+          var img = new Image();
+          img.onload = function () { resolve(path); };
+          img.onerror = function () { i++; tryNext(); };
+          img.src = path;
+        }
+        tryNext();
+      });
+    }
+
+    /* ── Scan a folder for numbered images (1.png, 2.jpg, etc.) ── */
+    function scanFolder(folder) {
+      var found = [];
+      function scanNext(number) {
+        return tryImageFormats(folder, number).then(function (path) {
+          if (path) {
+            found.push(path);
+            return scanNext(number + 1);
+          }
+          return found;
+        });
+      }
+      return scanNext(1);
+    }
+
+    /* ── Get next image in sequence, looping back to start ── */
+    function nextImage(images, indexName) {
+      var idx;
+      if (indexName === "our") {
+        idx = ourPictureIndex;
+        ourPictureIndex = (ourPictureIndex + 1) % images.length;
+      } else {
+        idx = pleasePictureIndex;
+        pleasePictureIndex = (pleasePictureIndex + 1) % images.length;
+      }
+      return images[idx];
+    }
+
+    /* ── Pre-scan both folders on page load ── */
+    scanFolder("our_picture").then(function (images) { ourPictureImages = images; });
+    scanFolder("please_picture").then(function (images) { pleasePictureImages = images; });
 
     /* ── Utility Functions ── */
     function showElement(element) {
@@ -399,8 +443,9 @@
 
     /* ── Surprise Sequence ── */
     function startSurprise() {
-      hideElement(initialSection);
-      showElement(surpriseSection);
+      hideElement(surpriseButton);
+      showElement(heartSvg);
+      showElement(statusText);
 
       backgroundMusic.volume = 0.3;
       backgroundMusic.play().catch(function () {
@@ -415,8 +460,27 @@
           return showTypingQuestion();
         })
         .then(function () {
+          showElement(answerButtons);
           showAnswerButtons();
         });
+    }
+
+    /* ── Slideshow for "Yes" State ── */
+    var slideshowTimer = null;
+
+    function startSlideshow() {
+      if (ourPictureImages.length <= 1) return;
+
+      slideshowTimer = setInterval(function () {
+        // Fade out
+        heartImage.style.opacity = "0";
+
+        setTimeout(function () {
+          // Swap to next image, then fade in
+          heartImage.setAttribute("href", nextImage(ourPictureImages, "our"));
+          heartImage.style.opacity = "1";
+        }, 600);
+      }, 4000);
     }
 
     /* ── Handle "Yes" (Terminal State) ── */
@@ -424,8 +488,11 @@
       appState = "YES";
       removeResetListeners();
 
-      heartImage.setAttribute("href", "our_picture.png");
-      heartImage.style.opacity = "1";
+      if (ourPictureImages.length > 0) {
+        heartImage.setAttribute("href", nextImage(ourPictureImages, "our"));
+        heartImage.style.opacity = "1";
+        startSlideshow();
+      }
 
       changeStatusText("I love youuuu <33");
 
@@ -437,8 +504,10 @@
     function handleNo() {
       appState = "NO";
 
-      heartImage.setAttribute("href", "please_picture.png");
-      heartImage.style.opacity = "1";
+      if (pleasePictureImages.length > 0) {
+        heartImage.setAttribute("href", nextImage(pleasePictureImages, "please"));
+        heartImage.style.opacity = "1";
+      }
 
       changeStatusText("Pleaseeee");
 
