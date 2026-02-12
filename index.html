@@ -285,7 +285,7 @@
       />
     </svg>
     <p id="status-text" class="hidden" aria-live="polite">
-      Will you be my Valentine?
+      Will you be my Valentine ?
     </p>
     <div class="answer-buttons hidden" id="answer-buttons">
       <button class="answer-button yes-button" id="yes-button">Yes!</button>
@@ -441,6 +441,41 @@
       }, 300);
     }
 
+    /* ── Typewriter Effect ── */
+    function typeWriter(text, charSpeed) {
+      return new Promise(function (resolve) {
+        statusText.classList.remove("typing");
+        statusText.textContent = "";
+        statusText.style.width = "auto";
+        statusText.style.whiteSpace = "nowrap";
+        statusText.style.overflow = "visible";
+        statusText.style.borderRight = "3px solid #880e4f";
+        statusText.style.opacity = "1";
+
+        var i = 0;
+        function type() {
+          if (i < text.length) {
+            statusText.textContent += text.charAt(i);
+            i++;
+            setTimeout(type, charSpeed);
+          } else {
+            resolve();
+          }
+        }
+        type();
+      });
+    }
+
+    /* ── Show Intro Sentence with Typewriter ── */
+    function showIntroSentence(text, holdTime) {
+      return typeWriter(text, 60).then(function () {
+        return delay(holdTime);
+      }).then(function () {
+        statusText.style.opacity = "0";
+        return delay(500);
+      });
+    }
+
     /* ── Surprise Sequence ── */
     function startSurprise() {
       hideElement(surpriseButton);
@@ -457,7 +492,16 @@
 
       animateHeartDrawing()
         .then(function () {
-          return showTypingQuestion();
+          return showIntroSentence("I was at work and I thought about you", 2000);
+        })
+        .then(function () {
+          return showIntroSentence("Being away makes me miss you so muchh T.T", 2000);
+        })
+        .then(function () {
+          return showIntroSentence("Which reminded me to ask you...", 2000);
+        })
+        .then(function () {
+          return typeWriter("Will you be my Valentine ?", 80);
         })
         .then(function () {
           showElement(answerButtons);
@@ -526,7 +570,7 @@
 
       heartImage.style.opacity = "0";
 
-      changeStatusText("Will you be my Valentine?");
+      changeStatusText("Will you be my Valentine ?");
     }
 
     /* ── Reset Listener Management ── */
