@@ -70,8 +70,8 @@
     }
 
     .heart-svg {
-      width: 200px;
-      height: 180px;
+      width: 320px;
+      height: 290px;
     }
 
     .heart-path {
@@ -103,8 +103,12 @@
       }
     }
 
-    /* ── Typing Effect ── */
-    .question-text {
+    #heart-image {
+      transition: opacity 0.6s ease;
+    }
+
+    /* ── Status Text ── */
+    #status-text {
       font-size: 2rem;
       font-weight: 700;
       color: #880e4f;
@@ -112,9 +116,10 @@
       overflow: hidden;
       border-right: 3px solid #880e4f;
       width: 0;
+      transition: opacity 0.3s ease;
     }
 
-    .question-text.typing {
+    #status-text.typing {
       animation:
         typing 2s steps(26) forwards,
         blink-cursor 0.6s step-end infinite;
@@ -135,6 +140,7 @@
       display: flex;
       gap: 24px;
       opacity: 0;
+      transition: opacity 0.6s ease;
     }
 
     .answer-buttons.fade-in {
@@ -179,51 +185,38 @@
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
     }
 
-    /* ── Response Sections (Yes / No) ── */
-    .response-section {
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 24px;
-    }
-
-    .response-image {
-      max-width: 360px;
-      max-height: 360px;
-      width: 90vw;
-      border-radius: 16px;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-      object-fit: cover;
-      opacity: 0;
-    }
-
-    .response-image.fade-in {
-      animation: fade-in 0.8s ease forwards;
-    }
-
-    .response-text {
-      font-size: 2.2rem;
-      font-weight: 700;
-      opacity: 0;
-    }
-
-    .response-text.fade-in {
-      animation: fade-in 0.8s ease 0.3s forwards;
-    }
-
-    .yes-text {
-      color: #c2185b;
-    }
-
-    .no-text {
-      color: #880e4f;
-    }
-
     @keyframes fade-in {
       to {
         opacity: 1;
       }
+    }
+
+    /* ── Volume Control ── */
+    .volume-control {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      opacity: 0.4;
+      transition: opacity 0.3s ease;
+      z-index: 10;
+    }
+
+    .volume-control:hover {
+      opacity: 0.9;
+    }
+
+    .volume-control label {
+      font-size: 1rem;
+      cursor: default;
+    }
+
+    .volume-control input[type="range"] {
+      width: 80px;
+      accent-color: #e91e63;
+      cursor: pointer;
     }
 
     /* ── Floating Hearts Background ── */
@@ -281,16 +274,29 @@
     </button>
   </section>
 
-  <!-- State 2: Surprise sequence + question -->
+  <!-- State 2: Surprise sequence (heart frame + question/response) -->
   <section id="surprise-section" class="hidden">
     <svg class="heart-svg" viewBox="0 0 200 180" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <clipPath id="heart-clip">
+          <path d="M100,170 C60,130 0,100 0,55 A55,55,0,0,1,100,30 A55,55,0,0,1,200,55 C200,100 140,130 100,170 Z" />
+        </clipPath>
+      </defs>
       <path
         id="heart-path"
         class="heart-path"
         d="M100,170 C60,130 0,100 0,55 A55,55,0,0,1,100,30 A55,55,0,0,1,200,55 C200,100 140,130 100,170 Z"
       />
+      <image
+        id="heart-image"
+        clip-path="url(#heart-clip)"
+        x="0" y="0"
+        width="200" height="180"
+        preserveAspectRatio="xMidYMid slice"
+        opacity="0"
+      />
     </svg>
-    <p class="question-text" id="question-text" aria-live="polite">
+    <p id="status-text" aria-live="polite">
       Will you be my Valentine?
     </p>
     <div class="answer-buttons" id="answer-buttons">
@@ -299,49 +305,30 @@
     </div>
   </section>
 
-  <!-- State 3: Yes response (terminal) -->
-  <section id="yes-section" class="response-section hidden">
-    <img
-      class="response-image"
-      id="yes-image"
-      src="our_picture.png"
-      alt="Our picture together"
-    >
-    <p class="response-text yes-text" id="yes-text" aria-live="polite">
-      I love youuuu &lt;33
-    </p>
-  </section>
-
-  <!-- State 4: No response -->
-  <section id="no-section" class="response-section hidden">
-    <img
-      class="response-image"
-      id="no-image"
-      src="please_picture.png"
-      alt="Please say yes"
-    >
-    <p class="response-text no-text" id="no-text" aria-live="polite">
-      Pleaseeee
-    </p>
-  </section>
+  <!-- Volume control (shown when music plays) -->
+  <div id="volume-control" class="volume-control hidden">
+    <label for="volume-slider">&#x1F508;</label>
+    <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.3">
+  </div>
 
   <script>
     /* ── Element References ── */
-    const initialSection = document.getElementById("initial-section");
-    const surpriseSection = document.getElementById("surprise-section");
-    const yesSection = document.getElementById("yes-section");
-    const noSection = document.getElementById("no-section");
-    const surpriseButton = document.getElementById("surprise-button");
-    const heartPath = document.getElementById("heart-path");
-    const questionText = document.getElementById("question-text");
-    const answerButtons = document.getElementById("answer-buttons");
-    const yesButton = document.getElementById("yes-button");
-    const noButton = document.getElementById("no-button");
-    const backgroundMusic = document.getElementById("background-music");
-    const yesImage = document.getElementById("yes-image");
-    const yesText = document.getElementById("yes-text");
-    const noImage = document.getElementById("no-image");
-    const noText = document.getElementById("no-text");
+    var initialSection = document.getElementById("initial-section");
+    var surpriseSection = document.getElementById("surprise-section");
+    var surpriseButton = document.getElementById("surprise-button");
+    var heartPath = document.getElementById("heart-path");
+    var heartImage = document.getElementById("heart-image");
+    var statusText = document.getElementById("status-text");
+    var answerButtons = document.getElementById("answer-buttons");
+    var yesButton = document.getElementById("yes-button");
+    var noButton = document.getElementById("no-button");
+    var backgroundMusic = document.getElementById("background-music");
+    var volumeControl = document.getElementById("volume-control");
+    var volumeSlider = document.getElementById("volume-slider");
+
+    /* ── App State ── */
+    var appState = "QUESTION";
+    var textChangeId = 0;
 
     /* ── Utility Functions ── */
     function showElement(element) {
@@ -378,14 +365,36 @@
 
     /* ── Show Typing Animation ── */
     function showTypingQuestion() {
-      questionText.style.width = "0";
-      questionText.classList.add("typing");
+      statusText.style.width = "0";
+      statusText.classList.add("typing");
       return delay(2500);
     }
 
     /* ── Show Answer Buttons ── */
     function showAnswerButtons() {
       answerButtons.classList.add("fade-in");
+
+      // After animation completes, switch to inline style so transitions work later
+      setTimeout(function () {
+        answerButtons.classList.remove("fade-in");
+        answerButtons.style.opacity = "1";
+      }, 600);
+    }
+
+    /* ── Update Status Text with Fade ── */
+    function changeStatusText(newText) {
+      var myId = ++textChangeId;
+      statusText.style.opacity = "0";
+
+      setTimeout(function () {
+        if (myId !== textChangeId) return;
+        statusText.textContent = newText;
+        statusText.classList.remove("typing");
+        statusText.style.width = "auto";
+        statusText.style.borderRight = "none";
+        statusText.style.overflow = "visible";
+        statusText.style.opacity = "1";
+      }, 300);
     }
 
     /* ── Surprise Sequence ── */
@@ -393,9 +402,11 @@
       hideElement(initialSection);
       showElement(surpriseSection);
 
+      backgroundMusic.volume = 0.3;
       backgroundMusic.play().catch(function () {
         // Autoplay blocked — music will not play, but animation continues
       });
+      showElement(volumeControl);
 
       startFloatingHearts();
 
@@ -408,64 +419,67 @@
         });
     }
 
-    /* ── Reset Surprise Section for Re-display ── */
-    function resetSurpriseAnimations() {
-      // Reset heart
-      heartPath.classList.remove("drawing", "filling");
-      heartPath.style.strokeDashoffset = "0";
-      heartPath.style.fillOpacity = "1";
-      heartPath.style.fill = "#e91e63";
-
-      // Reset question text — show fully typed
-      questionText.classList.remove("typing");
-      questionText.style.width = "26ch";
-      questionText.style.borderRight = "3px solid #880e4f";
-
-      // Reset buttons — show immediately
-      answerButtons.classList.remove("fade-in");
-      answerButtons.style.opacity = "1";
-    }
-
-    /* ── Handle "Yes" ── */
+    /* ── Handle "Yes" (Terminal State) ── */
     function handleYes() {
-      hideElement(surpriseSection);
-      showElement(yesSection);
+      appState = "YES";
+      removeResetListeners();
 
-      yesImage.classList.add("fade-in");
-      yesText.classList.add("fade-in");
+      heartImage.setAttribute("href", "our_picture.png");
+      heartImage.style.opacity = "1";
+
+      changeStatusText("I love youuuu <33");
+
+      answerButtons.style.opacity = "0";
+      answerButtons.style.pointerEvents = "none";
     }
 
     /* ── Handle "No" ── */
     function handleNo() {
-      hideElement(surpriseSection);
-      showElement(noSection);
+      appState = "NO";
 
-      noImage.classList.add("fade-in");
-      noText.classList.add("fade-in");
+      heartImage.setAttribute("href", "please_picture.png");
+      heartImage.style.opacity = "1";
 
-      // Delay listener to prevent the "No" click from immediately resetting
+      changeStatusText("Pleaseeee");
+
       delay(500).then(function () {
-        document.addEventListener("click", resetQuestion, { once: true });
-        document.addEventListener("keydown", resetQuestion, { once: true });
+        if (appState === "NO") {
+          addResetListeners();
+        }
       });
     }
 
     /* ── Reset Back to Question ── */
     function resetQuestion() {
-      // Remove any lingering listeners
+      if (appState !== "NO") return;
+      appState = "QUESTION";
+      removeResetListeners();
+
+      heartImage.style.opacity = "0";
+
+      changeStatusText("Will you be my Valentine?");
+    }
+
+    /* ── Reset Listener Management ── */
+    function addResetListeners() {
+      document.addEventListener("click", resetQuestion);
+      document.addEventListener("keydown", resetQuestion);
+    }
+
+    function removeResetListeners() {
       document.removeEventListener("click", resetQuestion);
       document.removeEventListener("keydown", resetQuestion);
-
-      // Reset no-section animations for next time
-      noImage.classList.remove("fade-in");
-      noText.classList.remove("fade-in");
-
-      hideElement(noSection);
-
-      // Show surprise section with question already visible (no re-animation)
-      resetSurpriseAnimations();
-      showElement(surpriseSection);
     }
+
+    /* ── Volume Control ── */
+    volumeSlider.addEventListener("input", function () {
+      backgroundMusic.volume = this.value;
+    });
+
+    // Prevent volume slider clicks from triggering the "No" state reset
+    volumeControl.addEventListener("click", function (event) {
+      event.stopPropagation();
+    });
 
     /* ── Floating Hearts Background ── */
     function startFloatingHearts() {
@@ -482,7 +496,6 @@
         heart.style.animationDelay = (Math.random() * 2) + "s";
         container.appendChild(heart);
 
-        // Remove heart after animation completes
         setTimeout(function () {
           if (heart.parentNode) {
             heart.parentNode.removeChild(heart);
@@ -490,10 +503,8 @@
         }, 11000);
       }
 
-      // Create hearts periodically
       setInterval(createHeart, 600);
 
-      // Create a few immediately
       for (var i = 0; i < 8; i++) {
         createHeart();
       }
@@ -501,8 +512,16 @@
 
     /* ── Event Bindings ── */
     surpriseButton.addEventListener("click", startSurprise);
-    yesButton.addEventListener("click", handleYes);
-    noButton.addEventListener("click", handleNo);
+
+    yesButton.addEventListener("click", function (event) {
+      event.stopPropagation();
+      handleYes();
+    });
+
+    noButton.addEventListener("click", function (event) {
+      event.stopPropagation();
+      handleNo();
+    });
   </script>
 
 </body>
