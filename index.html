@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Surprise For You</title>
+  <style>
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #fce4ec, #f8bbd0);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow: hidden;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* ── Initial Section ── */
+    #initial-section {
+      text-align: center;
+    }
+
+    .surprise-button {
+      font-size: 1.6rem;
+      padding: 20px 48px;
+      border: none;
+      border-radius: 50px;
+      background: linear-gradient(135deg, #e91e63, #c2185b);
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 8px 30px rgba(233, 30, 99, 0.4);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      animation: gentle-pulse 2s ease-in-out infinite;
+    }
+
+    .surprise-button:hover {
+      transform: scale(1.08);
+      box-shadow: 0 12px 40px rgba(233, 30, 99, 0.55);
+    }
+
+    .surprise-button:focus-visible {
+      outline: 3px solid #880e4f;
+      outline-offset: 4px;
+    }
+
+    @keyframes gentle-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+
+    /* ── Surprise Section ── */
+    #surprise-section {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .heart-svg {
+      width: 200px;
+      height: 180px;
+    }
+
+    .heart-path {
+      fill: none;
+      stroke: #e91e63;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .heart-path.drawing {
+      animation: draw-heart 2s ease forwards;
+    }
+
+    .heart-path.filling {
+      animation: fill-heart 0.8s ease forwards;
+    }
+
+    @keyframes draw-heart {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    @keyframes fill-heart {
+      to {
+        fill: #e91e63;
+        fill-opacity: 1;
+      }
+    }
+
+    /* ── Typing Effect ── */
+    .question-text {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #880e4f;
+      white-space: nowrap;
+      overflow: hidden;
+      border-right: 3px solid #880e4f;
+      width: 0;
+    }
+
+    .question-text.typing {
+      animation:
+        typing 2s steps(26) forwards,
+        blink-cursor 0.6s step-end infinite;
+    }
+
+    @keyframes typing {
+      to {
+        width: 26ch;
+      }
+    }
+
+    @keyframes blink-cursor {
+      50% { border-color: transparent; }
+    }
+
+    /* ── Answer Buttons ── */
+    .answer-buttons {
+      display: flex;
+      gap: 24px;
+      opacity: 0;
+    }
+
+    .answer-buttons.fade-in {
+      animation: fade-in 0.6s ease forwards;
+    }
+
+    .answer-button {
+      font-size: 1.3rem;
+      padding: 14px 40px;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .answer-button:focus-visible {
+      outline: 3px solid #880e4f;
+      outline-offset: 4px;
+    }
+
+    .yes-button {
+      background: linear-gradient(135deg, #e91e63, #c2185b);
+      color: #fff;
+      box-shadow: 0 6px 20px rgba(233, 30, 99, 0.35);
+    }
+
+    .yes-button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 10px 30px rgba(233, 30, 99, 0.5);
+    }
+
+    .no-button {
+      background: #fff;
+      color: #c2185b;
+      border: 2px solid #e91e63;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .no-button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    /* ── Response Sections (Yes / No) ── */
+    .response-section {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .response-image {
+      max-width: 360px;
+      max-height: 360px;
+      width: 90vw;
+      border-radius: 16px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+      object-fit: cover;
+      opacity: 0;
+    }
+
+    .response-image.fade-in {
+      animation: fade-in 0.8s ease forwards;
+    }
+
+    .response-text {
+      font-size: 2.2rem;
+      font-weight: 700;
+      opacity: 0;
+    }
+
+    .response-text.fade-in {
+      animation: fade-in 0.8s ease 0.3s forwards;
+    }
+
+    .yes-text {
+      color: #c2185b;
+    }
+
+    .no-text {
+      color: #880e4f;
+    }
+
+    @keyframes fade-in {
+      to {
+        opacity: 1;
+      }
+    }
+
+    /* ── Floating Hearts Background ── */
+    .floating-hearts {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .floating-heart {
+      position: absolute;
+      bottom: -40px;
+      font-size: 1.5rem;
+      opacity: 0;
+      animation: float-up linear infinite;
+    }
+
+    @keyframes float-up {
+      0% {
+        opacity: 0;
+        transform: translateY(0) rotate(0deg);
+      }
+      10% {
+        opacity: 0.7;
+      }
+      90% {
+        opacity: 0.7;
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-100vh) rotate(360deg);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating background hearts -->
+  <div class="floating-hearts" id="floating-hearts"></div>
+
+  <!-- Audio -->
+  <audio id="background-music" loop>
+    <source src="valentine_music.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- State 1: Initial -->
+  <section id="initial-section">
+    <button class="surprise-button" id="surprise-button">
+      Click here for surprise !!!
+    </button>
+  </section>
+
+  <!-- State 2: Surprise sequence + question -->
+  <section id="surprise-section" class="hidden">
+    <svg class="heart-svg" viewBox="0 0 200 180" xmlns="http://www.w3.org/2000/svg">
+      <path
+        id="heart-path"
+        class="heart-path"
+        d="M100,170 C60,130 0,100 0,55 A55,55,0,0,1,100,30 A55,55,0,0,1,200,55 C200,100 140,130 100,170 Z"
+      />
+    </svg>
+    <p class="question-text" id="question-text" aria-live="polite">
+      Will you be my Valentine?
+    </p>
+    <div class="answer-buttons" id="answer-buttons">
+      <button class="answer-button yes-button" id="yes-button">Yes!</button>
+      <button class="answer-button no-button" id="no-button">No</button>
+    </div>
+  </section>
+
+  <!-- State 3: Yes response (terminal) -->
+  <section id="yes-section" class="response-section hidden">
+    <img
+      class="response-image"
+      id="yes-image"
+      src="our_picture.jpg"
+      alt="Our picture together"
+    >
+    <p class="response-text yes-text" id="yes-text" aria-live="polite">
+      I love youuuu &lt;33
+    </p>
+  </section>
+
+  <!-- State 4: No response -->
+  <section id="no-section" class="response-section hidden">
+    <img
+      class="response-image"
+      id="no-image"
+      src="please_picture.jpg"
+      alt="Please say yes"
+    >
+    <p class="response-text no-text" id="no-text" aria-live="polite">
+      Pleaseeee
+    </p>
+  </section>
+
+  <script>
+    /* ── Element References ── */
+    const initialSection = document.getElementById("initial-section");
+    const surpriseSection = document.getElementById("surprise-section");
+    const yesSection = document.getElementById("yes-section");
+    const noSection = document.getElementById("no-section");
+    const surpriseButton = document.getElementById("surprise-button");
+    const heartPath = document.getElementById("heart-path");
+    const questionText = document.getElementById("question-text");
+    const answerButtons = document.getElementById("answer-buttons");
+    const yesButton = document.getElementById("yes-button");
+    const noButton = document.getElementById("no-button");
+    const backgroundMusic = document.getElementById("background-music");
+    const yesImage = document.getElementById("yes-image");
+    const yesText = document.getElementById("yes-text");
+    const noImage = document.getElementById("no-image");
+    const noText = document.getElementById("no-text");
+
+    /* ── Utility Functions ── */
+    function showElement(element) {
+      element.classList.remove("hidden");
+    }
+
+    function hideElement(element) {
+      element.classList.add("hidden");
+    }
+
+    function delay(ms) {
+      return new Promise(function (resolve) {
+        setTimeout(resolve, ms);
+      });
+    }
+
+    /* ── Heart Drawing Animation ── */
+    function animateHeartDrawing() {
+      var totalLength = heartPath.getTotalLength();
+      heartPath.style.strokeDasharray = totalLength;
+      heartPath.style.strokeDashoffset = totalLength;
+      heartPath.style.fillOpacity = "0";
+
+      // Force reflow so the browser registers the initial state
+      heartPath.getBoundingClientRect();
+
+      heartPath.classList.add("drawing");
+
+      return delay(2200).then(function () {
+        heartPath.classList.add("filling");
+        return delay(900);
+      });
+    }
+
+    /* ── Show Typing Animation ── */
+    function showTypingQuestion() {
+      questionText.style.width = "0";
+      questionText.classList.add("typing");
+      return delay(2500);
+    }
+
+    /* ── Show Answer Buttons ── */
+    function showAnswerButtons() {
+      answerButtons.classList.add("fade-in");
+    }
+
+    /* ── Surprise Sequence ── */
+    function startSurprise() {
+      hideElement(initialSection);
+      showElement(surpriseSection);
+
+      backgroundMusic.play().catch(function () {
+        // Autoplay blocked — music will not play, but animation continues
+      });
+
+      startFloatingHearts();
+
+      animateHeartDrawing()
+        .then(function () {
+          return showTypingQuestion();
+        })
+        .then(function () {
+          showAnswerButtons();
+        });
+    }
+
+    /* ── Reset Surprise Section for Re-display ── */
+    function resetSurpriseAnimations() {
+      // Reset heart
+      heartPath.classList.remove("drawing", "filling");
+      heartPath.style.strokeDashoffset = "0";
+      heartPath.style.fillOpacity = "1";
+      heartPath.style.fill = "#e91e63";
+
+      // Reset question text — show fully typed
+      questionText.classList.remove("typing");
+      questionText.style.width = "26ch";
+      questionText.style.borderRight = "3px solid #880e4f";
+
+      // Reset buttons — show immediately
+      answerButtons.classList.remove("fade-in");
+      answerButtons.style.opacity = "1";
+    }
+
+    /* ── Handle "Yes" ── */
+    function handleYes() {
+      hideElement(surpriseSection);
+      showElement(yesSection);
+
+      yesImage.classList.add("fade-in");
+      yesText.classList.add("fade-in");
+    }
+
+    /* ── Handle "No" ── */
+    function handleNo() {
+      hideElement(surpriseSection);
+      showElement(noSection);
+
+      noImage.classList.add("fade-in");
+      noText.classList.add("fade-in");
+
+      // Delay listener to prevent the "No" click from immediately resetting
+      delay(500).then(function () {
+        document.addEventListener("click", resetQuestion, { once: true });
+        document.addEventListener("keydown", resetQuestion, { once: true });
+      });
+    }
+
+    /* ── Reset Back to Question ── */
+    function resetQuestion() {
+      // Remove any lingering listeners
+      document.removeEventListener("click", resetQuestion);
+      document.removeEventListener("keydown", resetQuestion);
+
+      // Reset no-section animations for next time
+      noImage.classList.remove("fade-in");
+      noText.classList.remove("fade-in");
+
+      hideElement(noSection);
+
+      // Show surprise section with question already visible (no re-animation)
+      resetSurpriseAnimations();
+      showElement(surpriseSection);
+    }
+
+    /* ── Floating Hearts Background ── */
+    function startFloatingHearts() {
+      var container = document.getElementById("floating-hearts");
+      var hearts = ["\u2764\uFE0F", "\uD83D\uDC93", "\uD83D\uDC97", "\uD83D\uDC96", "\uD83D\uDC95"];
+
+      function createHeart() {
+        var heart = document.createElement("span");
+        heart.className = "floating-heart";
+        heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+        heart.style.left = Math.random() * 100 + "%";
+        heart.style.fontSize = (Math.random() * 1.5 + 0.8) + "rem";
+        heart.style.animationDuration = (Math.random() * 4 + 5) + "s";
+        heart.style.animationDelay = (Math.random() * 2) + "s";
+        container.appendChild(heart);
+
+        // Remove heart after animation completes
+        setTimeout(function () {
+          if (heart.parentNode) {
+            heart.parentNode.removeChild(heart);
+          }
+        }, 11000);
+      }
+
+      // Create hearts periodically
+      setInterval(createHeart, 600);
+
+      // Create a few immediately
+      for (var i = 0; i < 8; i++) {
+        createHeart();
+      }
+    }
+
+    /* ── Event Bindings ── */
+    surpriseButton.addEventListener("click", startSurprise);
+    yesButton.addEventListener("click", handleYes);
+    noButton.addEventListener("click", handleNo);
+  </script>
+
+</body>
+</html>
