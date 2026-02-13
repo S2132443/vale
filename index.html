@@ -24,35 +24,86 @@
     }
 
     .hidden {
-      display: none;
+      display: none !important;
     }
 
-    .surprise-button {
-      font-size: 1.6rem;
-      padding: 20px 48px;
+    .password-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .password-prompt {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #880e4f;
+    }
+
+    .password-input-wrapper {
+      display: inline-flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .password-input {
+      font-size: 1.1rem;
+      padding: 12px 20px;
+      border: 2px solid #e91e63;
+      border-radius: 50px;
+      outline: none;
+      transition: box-shadow 0.2s ease;
+    }
+
+    .password-input:focus {
+      box-shadow: 0 0 12px rgba(233, 30, 99, 0.35);
+    }
+
+    .password-submit-button {
+      font-size: 1.1rem;
+      padding: 12px 32px;
       border: none;
       border-radius: 50px;
       background: linear-gradient(135deg, #e91e63, #c2185b);
       color: #fff;
       cursor: pointer;
-      box-shadow: 0 8px 30px rgba(233, 30, 99, 0.4);
+      font-weight: 600;
+      box-shadow: 0 6px 20px rgba(233, 30, 99, 0.35);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
-      animation: gentle-pulse 2s ease-in-out infinite;
     }
 
-    .surprise-button:hover {
-      transform: scale(1.08);
-      box-shadow: 0 12px 40px rgba(233, 30, 99, 0.55);
+    .password-submit-button:hover {
+      transform: scale(1.06);
+      box-shadow: 0 10px 30px rgba(233, 30, 99, 0.5);
     }
 
-    .surprise-button:focus-visible {
+    .password-submit-button:focus-visible {
       outline: 3px solid #880e4f;
       outline-offset: 4px;
     }
 
-    @keyframes gentle-pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.04); }
+    .password-error {
+      font-size: 0.95rem;
+      color: #c2185b;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .password-error.visible {
+      opacity: 1;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-6px); }
+      80% { transform: translateX(6px); }
+    }
+
+    .password-input.shake {
+      animation: shake 0.5s ease;
     }
 
     /* ── Surprise Section ── */
@@ -291,9 +342,15 @@
       <button class="answer-button yes-button" id="yes-button">Yes!</button>
       <button class="answer-button no-button" id="no-button">No</button>
     </div>
-    <button class="surprise-button" id="surprise-button">
-      Click here for surprise !!!
-    </button>
+    <div id="password-section" class="password-section">
+      <p class="password-prompt">Enter the secret password:</p>
+      <div class="password-input-wrapper">
+        <input type="password" id="password-input" class="password-input"
+               placeholder="Type password here..." autocomplete="off">
+        <button class="password-submit-button" id="password-submit-button">Enter</button>
+      </div>
+      <p id="password-error" class="password-error">Wrong password, try again!</p>
+    </div>
   </section>
 
   <!-- Volume control (shown when music plays) -->
@@ -305,7 +362,10 @@
   <script>
     /* ── Element References ── */
     var surpriseSection = document.getElementById("surprise-section");
-    var surpriseButton = document.getElementById("surprise-button");
+    var passwordSection = document.getElementById("password-section");
+    var passwordInput = document.getElementById("password-input");
+    var passwordSubmitButton = document.getElementById("password-submit-button");
+    var passwordError = document.getElementById("password-error");
     var heartSvg = document.getElementById("heart-svg");
     var heartPath = document.getElementById("heart-path");
     var heartImage = document.getElementById("heart-image");
@@ -387,6 +447,34 @@
       return new Promise(function (resolve) {
         setTimeout(resolve, ms);
       });
+    }
+
+    /* ── Password Validation ── */
+    var CORRECT_PASSWORD = "sayang";
+
+    function handlePasswordSubmit() {
+      var enteredPassword = passwordInput.value.trim().toLowerCase();
+      if (enteredPassword === CORRECT_PASSWORD) {
+        passwordInput.value = "";
+        startSurprise();
+      } else {
+        showPasswordError();
+      }
+    }
+
+    function showPasswordError() {
+      passwordError.classList.add("visible");
+      passwordInput.classList.add("shake");
+
+      setTimeout(function () {
+        passwordInput.classList.remove("shake");
+        passwordInput.value = "";
+        passwordInput.focus();
+      }, 500);
+
+      setTimeout(function () {
+        passwordError.classList.remove("visible");
+      }, 3000);
     }
 
     /* ── Heart Drawing Animation ── */
@@ -478,7 +566,7 @@
 
     /* ── Surprise Sequence ── */
     function startSurprise() {
-      hideElement(surpriseButton);
+      hideElement(passwordSection);
       showElement(heartSvg);
       showElement(statusText);
 
@@ -624,7 +712,13 @@
     }
 
     /* ── Event Bindings ── */
-    surpriseButton.addEventListener("click", startSurprise);
+    passwordSubmitButton.addEventListener("click", handlePasswordSubmit);
+
+    passwordInput.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+        handlePasswordSubmit();
+      }
+    });
 
     yesButton.addEventListener("click", function (event) {
       event.stopPropagation();
